@@ -1,0 +1,864 @@
+<script>
+
+
+/********************************* Parte do local Storage que se está a desactivar para activar o plugin web sqlite *****
+*************************************************************************************************************************/
+    // function resetCounter()
+    // {
+    //  window.localStorage.clear();
+    //  document.getElementById("counter").innerHTML = "contador";
+
+    //  //só para testar e imprimir o valor que aparece (deve aparecer null)
+    //  var number = window.localStorage.getItem("number");
+    //  //alert("funçao incrementCounter_D: "+number);
+
+    // }
+
+    // function incrementCounter()
+    // {
+        
+    //  var number = window.localStorage.getItem("number");
+    //  //alert("funçao incrementCounter_A: "+number);
+
+    //  if(number == null)
+    //  {   
+    //      // Inicializa o contador a 1
+    //      number = 1;
+    //      // Armazena o valor no localstorage e imprime no botão "contador"
+    //      window.localStorage.setItem("number", number);
+    //      document.getElementById("counter").innerHTML = number;
+
+    //  }else
+    //  {
+    //      number++;
+    //      // Armazena o valor no localstorage e imprime no botão "contador"
+    //      window.localStorage.setItem("number", number);
+    //      document.getElementById("counter").innerHTML = number;
+    //  }
+    // }
+/********************************* Fim da parte do local Storage que se está a desactivar para activar o plugin web sqlite *****
+*************************************************************************************************************************/
+
+</script>
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+        <title>Hello World</title>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script src="https://kjur.github.io/jsrsasign/jsrsasign-all-min.js"></script>
+    
+        <style type="text/css">
+            html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; background-color:white; }
+            div#fullpage { width:100%; height:100%; margin:0; padding:0; border:0px solid red; text-align:center; vertical-align:middle; }
+            button { font-size: 18px; }
+        </style>
+    </head>
+    <body onload="onLoad()">
+
+
+    <script>
+    var CorHttpd = null;
+    var httpd = null;
+    var myDB = null;
+    function onLoad() {
+        document.addEventListener("deviceready", onDeviceReady, false);
+    }
+    function onDeviceReady() {
+        httpd = ( cordova && cordova.plugins && cordova.plugins.CorHttpd ) ? cordova.plugins.CorHttpd : null;
+
+        
+        myDB = window.sqlitePlugin.openDatabase({name: "mySQLite.db", location: 'default'});
+
+        //var storage = window.localStorage;
+
+        // var number = window.localStorage.getItem("number");
+        // if (number != null)
+        // {
+        //  document.getElementById("counter").innerHTML = number;
+        // }
+        
+        var SECRET_KEY = 'estaeachave';
+
+        startServer("htdocs");                         
+
+        httpd.onRequest(
+            
+            function(request) {
+                //alert("O MA GAWD! This is the request");
+        //        console.log("O MA GAWD! This is the request: ", request);
+        //alert(request.method);
+            addRoute(request.requestId, request.path, request.method, request.rawInput); 
+             //alert("Depois addRoute");
+                
+                //httpd.sendResponse(request.requestId, response);    
+            }
+        );
+    } //end of onDeviceReady() 
+
+
+    function addRoute(requestID, uri, method, rawInput){
+        var paramStr;
+        var parameter;
+        var a;
+        var flag = "";
+        var flag2 = "";
+        var uriTrim = "";
+        var uriLength;
+        var last;
+        //Trim uri to delet '/' if there is one at the end of path
+        uriLength = uri.length;
+        last = uri.lastIndexOf('/') + 1;
+        if((last == uriLength) && (last != 1)){
+                uriTrim = uri.slice(0, (uriLength-1));  
+        }else{
+            uriTrim = uriTrim.concat(uri);
+        }
+        
+        // Detect a parameter with an integer at the end of path. For ex: "/users/937297239", where param=937297239. 
+       
+        if(uri.startsWith("/api/tarefa")== true){
+                paramStr = uri.match(/\d/g);
+                if(paramStr != null){
+                        paramStr = paramStr.join("");
+                        parameter = parseInt(paramStr);
+                        if ((a = Number.isInteger(parameter))==true){
+                            flag = flag.concat(uri);
+                        }
+                }
+        }
+
+         if(uri.startsWith("/users")== true){
+                paramStr = uri.match(/\d/g);
+                if(paramStr != null){
+                        paramStr = paramStr.join("");
+                        parameter = parseInt(paramStr);
+                        if ((a = Number.isInteger(parameter))==true){
+                            flag2 = flag2.concat(uri);
+                        }
+                }
+        }
+
+        
+        switch(uriTrim){
+            case '/xpto':
+                            if(method == 'GET')
+                            {
+                                res = {
+                                        status: 200,
+                                        headers: {
+                                            'Content-Type': 'text/html',
+                                            'Content-Length': '12',
+                                        },
+                                        body: "<b>xpTo!</b>"
+                                      }
+                                httpd.sendResponse(requestID, res);
+                                return;
+
+                            }else if(method == 'POST')
+                            {
+                                    //put here post method
+                                    return;
+                            }
+                            break;
+
+            case '/foo':
+                            if(method == 'GET'){
+                                
+                                res = {
+                                    status: 200,
+                                    headers: {
+                                        'Content-Type': 'text/html',
+                                        'Content-Length': '11',
+                                    },
+                                    body: "<b>Foo!</b>"
+                                  }
+
+                                httpd.sendResponse(requestID, res);
+                                return;
+                            }else if(method == 'POST')
+                            {
+                                    //put here post method
+                                return;
+                            }
+
+                            break;
+            // If there is some parameter at end of path with an integer:
+            // flag means method PUT or DELETE, url="api/tarefa"         
+            case flag:
+                    
+                    if(method == 'DELETE'){
+                        //utilizar função splice() de JS para retirar elemento do json array
+
+                    }
+
+                    if(method == 'PUT'){
+                      
+                        myDB.transaction(function(transaction) {
+                        transaction.executeSql('UPDATE Tarefas SET feita = ? WHERE id = ?', [1, parameter], function (tx, results) {
+                                            res = {
+                                                status: 204,
+                                                headers: {
+                                                            'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                                            'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                            'Access-Control-Allow-Origin':'*',
+                                                            'Connection':'keep-alive',
+                                                            'Content-Length': 0,
+                                                },
+                                                body: ''
+                                            }
+                                            httpd.sendResponse(requestID, res);
+                                        }, function(error) {
+                                              alert("Error while updating the table.");
+                                    });
+                                });
+                         
+                                return;
+                    }
+            // case ('/api/tarefa'): //alterar o GET!!!
+            //                 //alert("/users");
+
+            //                 if(method == 'GET')
+            //                 {   
+            //                         //alert("requestID1: " + requestID);
+            //                      myDB.transaction(function(transaction) {
+            //                         transaction.executeSql('SELECT * FROM Tarefas', [], function (tx, results) {
+            //                                var len = results.rows.length;
+            //                                var infoToShow = [];
+            //                                var stringToShow = "";
+            //                                var strLength;
+            //                                var i= 0;
+
+            //                                //alert("reading from table.");
+            //                                stringToShow = stringToShow +  '[{"id":' + results.rows.item(i).id + ',"texto":"' + results.rows.item(i).texto + '","data":' + results.rows.item(i).data + ', "feita":' + results.rows.item(i).feita + '}';
+
+            //                                for (i = 1; i < len; i++){
+
+            //                                   stringToShow = stringToShow +  ',{"id":' + results.rows.item(i).id + ',"texto":"' + results.rows.item(i).texto + '","data":' + results.rows.item(i).data + ',"feita":' + results.rows.item(i).feita + '}';
+            //                                }
+            //                                stringToShow = stringToShow + ']';
+            //                                strLength = stringToShow.length;
+
+            //                                res = {
+            //                                 status: 200,
+            //                                 headers: {
+            //                                     'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+            //                                     'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+            //                                     'Access-Control-Allow-Origin':'*',
+            //                                     'Connection':'keep-alive',
+            //                                     'Content-Length': strLength,
+            //                                 },
+            //                                 body: stringToShow
+            //                               }
+            //                               httpd.sendResponse(requestID, res);
+                                          
+            //                         }, function(error) {
+            //                                   alert("Error occurred while reading the table.");
+            //                         });
+            //                     });
+            //                             return;
+                                     
+
+            //                 }else if(method == 'POST')
+            //                 {
+            //                     //alert("chegou request method POST");
+            //                     //alert(rawInput);
+            //                     var JSONParsed = JSON.parse(rawInput);
+                                
+
+            //                     var tarefa = {
+            //                         "id" : new Date().getTime(),
+            //                         "texto" : JSONParsed.texto,
+            //                         "data" : new Date().getTime(),
+            //                         "feita" : 0
+            //                     };
+
+            //                     myDB.sqlBatch([
+            //                         //'DROP TABLE IF EXISTS Users',
+            //                         'CREATE TABLE IF NOT EXISTS Tarefas (id integer primary key, texto text, data integer, feita integer)',
+            //                         ['INSERT INTO Tarefas (id, texto, data, feita) VALUES (?,?,?,?)', [tarefa.id, tarefa.texto, tarefa.data, tarefa.feita] ],
+            //                       ], function(tx, result) {
+            //                                 //alert("Table created successfully");
+            //                         }, 
+            //                         function(error) {
+            //                                   alert("Error occurred while creating the table.");
+            //                         }
+            //                     );
+
+            //                     res = {
+            //                                 status: 204,
+            //                                 headers: {
+            //                                             'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+            //                                             'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+            //                                             'Access-Control-Allow-Origin':'*',
+            //                                             'Connection':'keep-alive',
+            //                                             'Content-Length': 0,
+            //                                 },
+            //                                 body: ''
+            //                               }
+            //                     httpd.sendResponse(requestID, res);
+            //                     return;
+            //                 }
+            //                 break;
+
+
+            //  // If there is some parameter at end of path with an integer:        
+            //  //flag2 means methods PUT or DELETE, url="/users"        
+            // case flag2:
+                    
+            //         if(method == 'DELETE'){
+            //             //utilizar função splice() de JS para retirar elemento do json array
+
+            //         }
+
+            //         if(method == 'PUT'){
+                      
+            //             myDB.transaction(function(transaction) {
+            //             transaction.executeSql('UPDATE Users SET feita = ? WHERE id = ?', [1, parameter], function (tx, results) {
+            //                                 res = {
+            //                                     status: 204,
+            //                                     headers: {
+            //                                                 'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+            //                                                 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+            //                                                 'Access-Control-Allow-Origin':'*',
+            //                                                 'Connection':'keep-alive',
+            //                                                 'Content-Length': 0,
+            //                                     },
+            //                                     body: ''
+            //                                 }
+            //                                 httpd.sendResponse(requestID, res);
+            //                             }, function(error) {
+            //                                   alert("Error while updating the table.");
+            //                         });
+            //                     });
+                         
+            //                     return;
+            //         }
+
+            case ('/api/photos'): //alterar o GET!!!
+                            //alert("/users");
+
+                            if(method == 'GET')
+                            {   
+                                    //alert("requestID1: " + requestID);
+                                    console.log("Antes transaction GET");
+
+                                 myDB.transaction(function(transaction) {
+                                    transaction.executeSql('SELECT * FROM Photos', [], function (tx, results) {
+                                           var len = results.rows.length;
+                                           var infoToShow = [];
+                                           var stringToShow = "";
+                                           var strLength;
+                                           var i= 0;
+
+                                           //alert("reading from table.");
+                                           stringToShow = stringToShow +  '[{"id":' + results.rows.item(i).id + ',"profilePic":"' + results.rows.item(i).profilePic + '","name":"' + results.rows.item(i).name + '", "about":"' + results.rows.item(i).about + '"}';
+
+                                           for (i = 1; i < len; i++){
+
+                                              stringToShow = stringToShow +  ',{"id":' + results.rows.item(i).id + ',"profilePic":"' + results.rows.item(i).profilePic + '","name":"' + results.rows.item(i).name + '","about":"' + results.rows.item(i).about + '"}';
+                                           }
+                                           stringToShow = stringToShow + ']';
+                                           strLength = stringToShow.length;
+
+                                           res = {
+                                            status: 200,
+                                            headers: {
+                                                'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                'Access-Control-Allow-Origin':'*',
+                                                //'Connection':'keep-alive',
+                                                'Content-Length': strLength
+                                                
+
+                                                // 'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                                // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                // 'Access-Control-Allow-Origin':'*',
+                                                // 'Cache-Control':'no-cache',
+                                                // 'Connection':'keep-alive',
+                                                // // 'Content-Encoding':'gzip',
+                                                // 'Content-Type':'application/json; charset=utf-8',
+                                                // 'Transfer-Encoding':'chunked',
+                                                // 'Vary':'Origin, Accept-Encoding',
+                                                // 'X-Content-Type-Options':'nosniff',
+                                                // 'X-Powered-By':'Express',
+                                                // 'Content-Length': strLength
+                                            },
+                                            body: stringToShow
+                                          }
+                                          console.log("Antes sendResponse GET");
+
+                                          httpd.sendResponse(requestID, res);
+                                          console.log("Depois sendResponse GET");
+
+                                    }, function(error) {
+                                              alert("Error occurred while reading the table.");
+                                    });
+                                });
+                                 console.log("Antes return GET");
+
+                                        return;
+                                     
+
+                            }else if(method == 'POST')
+                            {
+                                //alert("chegou request method POST");
+                                //alert(rawInput);
+                                var JSONParsed = JSON.parse(rawInput);
+                                
+
+                                var photo = {
+                                    "id" : new Date().getTime(),
+                                    "profilePic" : JSONParsed.profilePic,
+                                    "name": JSONParsed.name,
+                                    "about" : JSONParsed.about
+                                };
+                                console.log("Antes transaction POST");
+
+                                myDB.sqlBatch([
+                                    //'DROP TABLE IF EXISTS Users',
+                                    'CREATE TABLE IF NOT EXISTS Photos (id integer primary key, profilePic text, name text, about text)',
+                                    ['INSERT INTO Photos (id, profilePic, name, about) VALUES (?,?,?,?)', [photo.id, photo.profilePic, photo.name, photo.about] ],
+                                  ], function(tx, result) {
+                                            //alert("Table created successfully");
+
+                                            var JSONmessage = '{"profilePic": "' + photo.profilePic + '", "name": "' + photo.name + '", "about": "' + photo.about + '", "id": "' + photo.id + '"}';
+
+                                            var length = JSONmessage.length;
+                                            res = {
+                                                    status: 204,
+                                                    headers: {
+                                                        'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                        'Access-Control-Allow-Origin':'*',
+                                                        //'Connection':'keep-alive',
+                                                        'Content-Length': length
+
+                                                        // 'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                                        // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                        // 'Access-Control-Allow-Origin':'*',
+                                                        // 'Cache-Control':'no-cache',
+                                                        // 'Connection':'keep-alive',
+                                                        // 'Content-Type':'application/json; charset=utf-8',
+                                                        // 'Transfer-Encoding':'chunked',
+                                                        // 'Vary':'Origin, X-HTTP-Method-Override, Accept-Encoding',
+                                                        // 'X-Content-Type-Options':'nosniff',
+                                                        // 'X-Powered-By':'Express'
+                                                 },
+                                                body: JSONmessage
+                                          }
+                                          console.log("Antes sendResponse POST");
+                                        httpd.sendResponse(requestID, res);
+                                        console.log("Depois sendResponse POST");
+
+                                    }, 
+                                    function(error) {
+                                              alert("Error occurred while creating the table.");
+                                    }
+                                );
+
+                                console.log("Antes return POST");
+
+                                return;
+                            }
+                            break;
+
+
+             // If there is some parameter at end of path with an integer:        
+             //flag2 means methods PUT or DELETE, url="/users"        
+            case flag2:
+                    
+                    if(method == 'DELETE'){
+                        //utilizar função splice() de JS para retirar elemento do json array
+
+                    }
+
+                    if(method == 'PUT'){
+                      
+                      //alterar nomes da tabela da base de dados!!
+                        myDB.transaction(function(transaction) {
+                        transaction.executeSql('UPDATE Users SET feita = ? WHERE id = ?', [1, parameter], function (tx, results) {
+                                            res = {
+                                                status: 204,
+                                                headers: {
+                                                            'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                                            'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                            'Access-Control-Allow-Origin':'*',
+                                                            'Connection':'keep-alive',
+                                                            'Content-Length': 0,
+                                                },
+                                                body: ''
+                                            }
+                                            httpd.sendResponse(requestID, res);
+                                        }, function(error) {
+                                              alert("Error while updating the table.");
+                                    });
+                                });
+                         
+                                return;
+                    }
+
+            case ('/users'): //alterar o GET!!!
+                            //alert("/users");
+
+                            if(method == 'GET')
+                            {   
+                                    //alert("requestID1: " + requestID);
+                                 myDB.transaction(function(transaction) {
+                                    transaction.executeSql('SELECT * FROM Users', [], function (tx, results) {
+                                           var len = results.rows.length;
+                                           var infoToShow = [];
+                                           var stringToShow = "";
+                                           var strLength;
+                                           var i= 0;
+
+
+                                           stringToShow = stringToShow +  '[{"id":' + results.rows.item(i).id + ',"email":"' + results.rows.item(i).email + '","password":' + results.rows.item(i).password + '}';
+
+                                           for (i = 1; i < len; i++){
+
+                                              stringToShow = stringToShow +  ',{"id":' + results.rows.item(i).id + ',"email":"' + results.rows.item(i).email + '","password":' + results.rows.item(i).password + '}';
+                                           }
+                                           stringToShow = stringToShow + ']';
+                                           strLength = stringToShow.length;
+
+                                           res = {
+                                            status: 200,
+                                            headers: {
+                                                'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                                'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                'Access-Control-Allow-Origin':'*',
+                                                'Connection':'keep-alive',
+                                                'Content-Length': strLength,
+                                            },
+                                            body: stringToShow
+                                          }
+                                          httpd.sendResponse(requestID, res);
+                                    }, function(error) {
+                                              alert("Error occurred while reading from table.");
+                                    });
+                                });
+                                        return;
+                                     
+
+                            }else if(method == 'POST')
+                            {
+                                //alert("chegou request method POST");
+                                //alert(rawInput);
+                                var JSONParsed = JSON.parse(rawInput);
+                                
+
+                                // var tarefa = {
+                                //     "id" : new Date().getTime(),
+                                //     "texto" : JSONParsed.texto,
+                                //     "data" : new Date().getTime(),
+                                //     "feita" : 0
+                                // };
+
+                                var email = JSONParsed.email;
+                                var password = JSONParsed.password;
+                                var id = JSONParsed.id;
+
+                                myDB.sqlBatch([
+                                    //'DROP TABLE IF EXISTS Users',
+                                    'CREATE TABLE IF NOT EXISTS Users (id integer primary key, email text unique, password text)',
+                                    ['INSERT INTO Users (id, email, password) VALUES (?,?,?)', [JSONParsed.id, JSONParsed.email, JSONParsed.password] ],
+                                  ], function(tx, result) {
+                                            //alert("Table created successfully");
+                                            res = {
+                                            status: 204,
+                                            headers: {
+                                                        'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                                        'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                        'Access-Control-Allow-Origin':'*',
+                                                        'Connection':'keep-alive',
+                                                        'Content-Length': 0,
+                                            },
+                                            body: ''
+                                          }
+                                httpd.sendResponse(requestID, res);
+                                    }, 
+                                    function(error) {
+                                              var frase = "<b>Please try another email</b>";
+                                              strLength = frase.length;
+
+                                              res = {
+                                                    status: 200,
+                                                    headers: {
+                                                        'Content-Type': 'text/html',
+                                                        'Content-Length': strLength,
+                                                    },
+                                                    body: frase
+                                                  }
+                                            httpd.sendResponse(requestID, res);
+                                                }
+                                );
+
+                                
+                                return;
+                            }
+                            break;
+
+            case ('/api/usuario'):
+
+                                var JSONParsed = JSON.parse(rawInput);
+                                var email = JSONParsed.email;
+                                var password = JSONParsed.senha;
+
+                                var token = generateToken(email, password);
+
+                                JSONtoken = {
+                                                email: email,
+                                                password: password,
+                                                token: token
+                                            }
+                                var strLength = JSONtoken.length;
+                               
+
+                                            res = {
+                                            status: 200,
+                                            headers: {
+                                                'Access-Control-Allow-Headers':'Origin, X-Requested-With,   Content-Type, Accept',
+                                                'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                                'Access-Control-Allow-Origin':'*',
+                                                'Connection':'keep-alive',
+                                                'Content-Length': strLength,
+                                            },
+                                            body: JSONtoken
+                                          }
+                                httpd.sendResponse(requestID, res);
+                                
+
+                                
+
+                                myDB.sqlBatch([
+                                    //'DROP TABLE IF EXISTS Users',
+                                    'CREATE TABLE IF NOT EXISTS Users (id integer primary key, email text unique, password text)',
+                                    ['INSERT INTO Users ( email, password) VALUES (?,?)', [email, password] ],
+                                  ], function(tx, result) {
+                                            //alert("Table created successfully");
+                                            
+                                            
+                                    }, 
+                                    function(error) {
+                                            //   var frase = "<b>Please try another email</b>";
+                                            //   strLength = frase.length;
+
+                                            //   res = {
+                                            //         status: 401,
+                                            //         headers: {
+                                            //             'Content-Type': 'text/html',
+                                            //             'Content-Length': strLength,
+                                            //         },
+                                            //         body: frase
+                                            //       }
+                                            // httpd.sendResponse(requestID, res);
+                                                    alert("wrong email");
+                                                });
+
+                                // var email = "danieltc";
+                                // var password = "dada";
+                                // var id = 2;
+                                
+                                // o sequinte funciona:
+                                // myDB.transaction(function(transaction) {
+                                //     transaction.executeSql('SELECT * FROM Users WHERE email=?', [email], function (tx, results) {
+                                //            var len = results.rows.length;
+                                //            var infoToShow = [];
+                                //            var stringToShow = "";
+                                //            var strLength;
+                                //            var i= 0;
+
+
+                                //            stringToShow = stringToShow +  '[{"id":' + results.rows.item(i).id + ',"email":"' + results.rows.item(i).email + '","password":' + results.rows.item(i).password + '}';
+
+                                //            for (i = 1; i < len; i++){
+
+                                //               stringToShow = stringToShow +  ',{"id":' + results.rows.item(i).id + ',"email":"' + results.rows.item(i).email + '","password":' + results.rows.item(i).password + '}';
+                                //            }
+                                //            stringToShow = stringToShow + ']';
+                                //            strLength = stringToShow.length;
+
+                                //            res = {
+                                //             status: 200,
+                                //             headers: {
+                                //                 'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+                                //                 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+                                //                 'Access-Control-Allow-Origin':'*',
+                                //                 'Connection':'keep-alive',
+                                //                 'Content-Length': strLength,
+                                //             },
+                                //             body: stringToShow
+                                //           }
+                                //           httpd.sendResponse(requestID, res);
+                                //     }, function(error) {
+                                //               alert("Error occurred while reading from table.");
+                                //     });
+                                // });
+                                        return;
+
+                                
+
+            default:
+                    //alert("default");
+                    res = {
+                            status: 200,
+                            headers: {
+                                'Content-Type': 'text/html',
+                                'Content-Length': '22',
+                            },
+                            body: "<b>Make a request!</b>"
+                          }
+                          debugger;
+                          httpd.sendResponse(requestID, res);   
+                    return;
+        }
+    }
+
+    function updateStatus() {
+        //alert("entrou no updateStatus");
+        
+        if( httpd ) {
+            httpd.getURL(function(url){
+                if(url.length > 0) {
+                    document.getElementById('url').innerHTML = "server is up: <a href='" + url + "' target='_blank'>" + url + "</a>";
+                    
+                } else {
+                    document.getElementById('url').innerHTML = "server is down.";
+                }
+            });
+            httpd.getLocalPath(function(path){
+                document.getElementById('localpath').innerHTML = "<br/>localPath: " + path;
+            });
+        } else {
+            alert('CorHttpd plugin not available/ready.');
+        }
+    }
+    function startServer( wwwroot ) {
+        if ( httpd ) {
+            httpd.getURL(function(url){
+                if(url.length > 0) {
+                     document.getElementById('url').innerHTML = "server is up: <a href='" + url + "' target='_blank'>" + url + "</a>";
+                    
+                } else {
+                    httpd.startServer({
+                        'www_root' : wwwroot,
+                        'port' : 8080
+                    }, function( url ){
+                        //document.getElementById('url').innerHTML = "server is started: <a href='" + url + "' target='_blank'>" + url + "</a>";
+                        updateStatus();
+                    }, function( error ){
+                        document.getElementById('url').innerHTML = 'failed to start server: ' + error;
+                    });
+                }
+                
+            },function(){});
+        } else {
+            alert('CorHttpd plugin not available/ready.');
+        }
+    }
+    function stopServer() {
+        if ( httpd ) {
+            httpd.stopServer(function(){
+                //document.getElementById('url').innerHTML = 'server is stopped.';
+                updateStatus();
+                navigator.app.exitApp(); 
+            },function( error ){
+                document.getElementById('url').innerHTML = 'failed to stop server' + error;
+            });
+        } else {
+            alert('CorHttpd plugin not available/ready.');
+        }
+    }
+
+
+    function createDatabase(){
+        alert("/users2");
+        Name = "Diogo Piçarra";
+        Username = "jnos";
+        alert("/users3");
+
+        myDB.sqlBatch([
+            'CREATE TABLE IF NOT EXISTS Users (id integer primary key, Name text, Username text)',
+            ['INSERT INTO Users (Name, Username) VALUES (?,?)', [Name, Username] ],
+          ], function(tx, result) {
+                    alert("Table created successfully");
+            }, 
+            function(error) {
+                      alert("Error occurred while creating the table.");
+            }
+        );
+    }
+
+    function deleteDatabase(){
+
+
+            myDB.sqlBatch(['DROP TABLE IF EXISTS Photos'], function(tx, result) {
+                        alert("Deleted successfully");
+                }, 
+                function(error) {
+                        alert("Error occurred while deleting the table.");
+                }
+            );
+    }
+
+/*********************************************************************************************************/
+/* Took this function from: https://www.jonathan-petitcolas.com/2014/11/27/creating-json-web-token-in-javascript.html*/
+    function base64url(source) {
+      // Encode in classical base64
+      encodedSource = CryptoJS.enc.Base64.stringify(source);
+
+      // Remove padding equal characters
+      encodedSource = encodedSource.replace(/=+$/, '');
+
+      // Replace characters according to base64url specifications
+      encodedSource = encodedSource.replace(/\+/g, '-');
+      encodedSource = encodedSource.replace(/\//g, '_');
+
+      return encodedSource;
+    }
+
+    function generateToken(email, password){
+
+
+        // var token = jwt.sign({
+        //     'email': email,
+        //     'password': password
+        // },
+        // SECRET_KEY,
+        // {expiresIn: '10000'});
+
+        // sign JWT
+        header = {alg: "HS256", typ: "JWT"};
+        payload = {email: email, password: password, admin: true};
+        jwt = KJUR.jws.JWS.sign("HS256", header, payload, {utf8: 'estaeachave'});
+        var token = jwt;
+    return token;
+    }
+
+    </script>
+
+
+
+    <div id="fullpage">
+    <h1>Server: cordova-httpd</h1>
+    <!--<p><button onclick="startServer('htdocs');">Start Httpd at www/htdocs</button></p>
+    -->
+    <p><button onclick="stopServer();">Exit Server</button></p>
+
+    <p><button onclick="createDatabase();"> Create Database</button></p>
+   <p><button onclick="deleteDatabase();"> Delete Database</button></p>
+    <button id='counter' onclick="incrementCounter();">Contador</button>
+    <button id='resetCounter' onclick="resetCounter();">Reset Contador</button>
+
+    <div id='url'></div>
+
+
+    
+    
+    </div>
+    
+    </body>
+</html>
