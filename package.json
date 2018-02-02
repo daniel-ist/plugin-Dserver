@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daniel-ist/cordova-RestServer.git"
+    "url": "git+https://github.com/daniel-ist/plugin-Dserver.git"
   },
   "keywords": [
     "rest",
@@ -25,7 +25,7 @@
   "author": "Daniel Castro",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/daniel-ist/cordova-RestServer/issues"
+    "url": "https://github.com/daniel-ist/plugin-Dserver/issues"
   },
-  "homepage": "https://github.com/daniel-ist/cordova-RestServer#readme"
+  "homepage": "https://github.com/daniel-ist/plugin-Dserver#readme"
 }
