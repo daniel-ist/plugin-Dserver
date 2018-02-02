@@ -1,0 +1,31 @@
+{
+  "name": "Dserver",
+  "version": "1.0.0",
+  "description": "D-Server is a plugin with embedded web/RESTful server (cordova)",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "cordova run android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daniel-ist/cordova-RestServer.git"
+  },
+  "keywords": [
+    "rest",
+    "server",
+    "D-Server",
+    "web",
+    "webserver",
+    "cordova",
+    "plugin"
+  ],
+  "author": "Daniel Castro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/daniel-ist/cordova-RestServer/issues"
+  },
+  "homepage": "https://github.com/daniel-ist/cordova-RestServer#readme"
+}
